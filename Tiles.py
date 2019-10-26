@@ -15,37 +15,37 @@ def random_walk(goal, moves_from_goal):
     puzzle_size = len(goal[0]) - 1
     directions = [Directions.UP, Directions.DOWN, Directions.LEFT, Directions.RIGHT]
     opposite_previous = ''
-    x, y = 0, 0
+    col, row = 0, 0
 
     for i in range(0, moves_from_goal):
         new_dir = directions[:]
-        if x == 0:
+        if col == 0:
             new_dir.remove(Directions.LEFT)
-        if y == 0:
+        if row == 0:
             new_dir.remove(Directions.UP)
-        if x == puzzle_size:
+        if col == puzzle_size:
             new_dir.remove(Directions.RIGHT)
-        if y == puzzle_size:
+        if row == puzzle_size:
             new_dir.remove(Directions.DOWN)
         if opposite_previous in new_dir:
             new_dir.remove(opposite_previous)
 
         direction = random.choice(new_dir)
         if direction == Directions.UP:
-            move_up(tiles, x, y)
-            y -= 1
+            move_up(tiles, col, row)
+            row -= 1
             opposite_previous = Directions.DOWN
         elif direction == Directions.DOWN:
-            move_down(tiles, x, y)
-            y += 1
+            move_down(tiles, col, row)
+            row += 1
             opposite_previous = Directions.UP
         elif direction == Directions.RIGHT:
-            move_right(tiles, x, y)
-            x += 1
+            move_right(tiles, col, row)
+            col += 1
             opposite_previous = Directions.LEFT
         elif direction == Directions.LEFT:
-            move_left(tiles, x, y)
-            x -= 1
+            move_left(tiles, col, row)
+            col -= 1
             opposite_previous = Directions.RIGHT
 
     return tiles
@@ -53,53 +53,53 @@ def random_walk(goal, moves_from_goal):
 
 def possible_moves(tiles, puzzle_size):
     output = []
-    x, y = get_zero_position(tiles)
+    col, row = get_zero_position(tiles)
 
-    if y > 0:
+    if row > 0:
         new_list = copy.deepcopy(tiles)
-        new_list = move_up(new_list, x, y)
+        new_list = move_up(new_list, col, row)
         output.append(new_list)
 
-    if y < puzzle_size:
+    if row < puzzle_size:
         new_list = copy.deepcopy(tiles)
-        new_list = move_down(new_list, x, y)
+        new_list = move_down(new_list, col, row)
         output.append(new_list)
 
-    if x > 0:
+    if col > 0:
         new_list = copy.deepcopy(tiles)
-        new_list = move_left(new_list, x, y)
+        new_list = move_left(new_list, col, row)
         output.append(new_list)
 
-    if x < puzzle_size:
+    if col < puzzle_size:
         new_list = copy.deepcopy(tiles)
-        new_list = move_right(new_list, x, y)
+        new_list = move_right(new_list, col, row)
         output.append(new_list)
 
     return output
 
 
 def get_zero_position(tiles):
-    y = 0
-    while 0 not in tiles[y]: y += 1
-    x = tiles[y].index(0)  # blank space (zero)
-    return x, y
+    row = 0
+    while 0 not in tiles[row]: row += 1
+    col = tiles[row].index(0)
+    return col, row
 
 
-def move_up(new_list, x, y):
-    new_list[y][x], new_list[y - 1][x] = new_list[y - 1][x], new_list[y][x]
+def move_up(new_list, col, row):
+    new_list[row][col], new_list[row - 1][col] = new_list[row - 1][col], new_list[row][col]
     return new_list
 
 
-def move_down(new_list, x, y):
-    new_list[y][x], new_list[y + 1][x] = new_list[y + 1][x], new_list[y][x]
+def move_down(new_list, col, row):
+    new_list[row][col], new_list[row + 1][col] = new_list[row + 1][col], new_list[row][col]
     return new_list
 
 
-def move_left(new_list, x, y):
-    new_list[y][x], new_list[y][x - 1] = new_list[y][x - 1], new_list[y][x]
+def move_left(new_list, col, row):
+    new_list[row][col], new_list[row][col - 1] = new_list[row][col - 1], new_list[row][col]
     return new_list
 
 
-def move_right(new_list, x, y):
-    new_list[y][x], new_list[y][x + 1] = new_list[y][x + 1], new_list[y][x]
+def move_right(new_list, col, row):
+    new_list[row][col], new_list[row][col + 1] = new_list[row][col + 1], new_list[row][col]
     return new_list
