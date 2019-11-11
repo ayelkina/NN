@@ -1,8 +1,32 @@
 import copy
+import enum
 from abc import abstractmethod
 from itertools import product
 
 import Tiles
+
+
+class Enum(enum.Enum):
+    LinearConflict = 1
+    Manhattan = 2
+    Misplaced = 3
+    ColumnsMisplaced = 4
+    RowsMisplaced = 5
+    Gasching = 6
+
+    def heuristic(self):
+        if self == Enum.LinearConflict:
+            return LinearConflict()
+        elif self == Enum.Manhattan:
+            return Manhattan()
+        elif self == Enum.Misplaced:
+            return Misplaced()
+        elif self == Enum.ColumnsMisplaced:
+            return ColumnsMisplaced()
+        elif self == Enum.RowsMisplaced:
+            return RowsMisplaced()
+        elif self == Enum.Gasching:
+            return Gasching()
 
 
 class Heuristic:
@@ -67,8 +91,6 @@ class Manhattan(Heuristic):
 class LinearConflict(Heuristic):
     def solve(self, input, puzzle_size):
         distance = Manhattan().solve(input, puzzle_size)
-        # Two tiles tj and tk are in a linear conflict if tj and tk are in the same line, the goal positions of tj and tk are both in that line,
-        # tj is to the right of tk and goal position of tj is to the left of the goal position of tk
         distance += self.linear_vertical_conflict(input, puzzle_size)
         distance += self.linear_horizontal_conflict(input, puzzle_size)
         return distance
@@ -83,8 +105,7 @@ class LinearConflict(Heuristic):
                 if cellvalue != 0 and (cellvalue - 1) / puzzle_size == row:
                     if cellvalue > max:
                         max = cellvalue
-                    else:  # linear conflict, one tile must move up or down to allow the other to pass brow and then back up
-                        # add two moves to the manhattan distance
+                    else:
                         lc += 2
         return lc
 
@@ -99,18 +120,13 @@ class LinearConflict(Heuristic):
                     if cellvalue > max:
                         max = cellvalue
                     else:
-                        # linear conflict, one tile must move left or right to allow the other to pass brow and then back up
-                        # add two moves to the manhattan distance
                         lc += 2
 
         return lc
 
 
 class Gasching(Heuristic):
-    goal = []
-
-    def __init__(self, goal):
-        self.goal = goal
+    goal = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
 
     def solve(self, input, puzzle_size):
         tiles = copy.deepcopy(input)
