@@ -9,6 +9,7 @@ class Astar:
     expanded_nodes = 0
     input = []
     solution = []
+    terminated = False
 
     def __init__(self, heuristic):
         self.heuristic = heuristic
@@ -25,6 +26,8 @@ class Astar:
             end = time.time()
 
             if end - start > 5:
+                self.solution = ''
+                self.terminated = True
                 break_loop = True
             i = 0
             for j in range(1, len(open_set)):

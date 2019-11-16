@@ -3,7 +3,11 @@ import enum
 from abc import abstractmethod
 from itertools import product
 
+import numpy as np
+import tensorflow as tf
+
 import Tiles
+from Parameters import GOAL, MODEL_NAME
 
 
 class Enum(enum.Enum):
@@ -85,7 +89,7 @@ class Manhattan(Heuristic):
                 col_goal = input[row][col] % puzzle_size
                 row_goal = (input[row][col] - col_goal) / puzzle_size
                 distance += abs(col - col_goal) + abs(row - row_goal)
-        return distance
+        return int(distance)
 
 
 class LinearConflict(Heuristic):
@@ -126,7 +130,7 @@ class LinearConflict(Heuristic):
 
 
 class Gasching(Heuristic):
-    goal = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
+    goal = GOAL
 
     def solve(self, input, puzzle_size):
         tiles = copy.deepcopy(input)
@@ -155,3 +159,33 @@ class Gasching(Heuristic):
                     break
 
         return distance
+
+
+class NeuralNetwork(Heuristic):
+
+    def compute_input(self, input):
+        input_data = []
+        Manh = Manhattan().compute(input)
+        Lin = LinearConflict().compute(input)
+        Misp = Misplaced().compute(input)
+        Col_Misp = ColumnsMisplaced().compute(input)
+        Row_Misp = RowsMisplaced().compute(input)
+        Gasch = Gasching().compute(input)
+
+        input_data.append(Manh)
+        input_data.append(Lin)
+        input_data.append(Misp)
+        input_data.append(Col_Misp)
+        input_data.append(Row_Misp)
+        input_data.append(Gasch)
+
+        # for i in input:
+        #     for j in i:
+        #         input_data.append(j)
+
+        return input_data
+
+    def solve(self, input, puzzle_size):
+        model = tf.keras.models.load_model(MODEL_NAME)
+        input_data = self.compute_input(input)
+        return model.predict(np.array([input_data]))
