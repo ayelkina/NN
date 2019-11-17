@@ -13,6 +13,7 @@ from Parameters import GOAL, MODEL_NAME
 class Enum(enum.Enum):
     LinearConflict = 1
     Manhattan = 2
+    NeuralNetwork = 7
     Misplaced = 3
     ColumnsMisplaced = 4
     RowsMisplaced = 5
@@ -31,6 +32,8 @@ class Enum(enum.Enum):
             return RowsMisplaced()
         elif self == Enum.Gasching:
             return Gasching()
+        elif self == Enum.NeuralNetwork:
+            return NeuralNetwork()
 
 
 class Heuristic:
@@ -162,6 +165,10 @@ class Gasching(Heuristic):
 
 
 class NeuralNetwork(Heuristic):
+    model = ''
+
+    def __init__(self):
+        self.model = tf.keras.models.load_model(MODEL_NAME)
 
     def compute_input(self, input):
         input_data = []
@@ -186,6 +193,5 @@ class NeuralNetwork(Heuristic):
         return input_data
 
     def solve(self, input, puzzle_size):
-        model = tf.keras.models.load_model(MODEL_NAME)
         input_data = self.compute_input(input)
-        return model.predict(np.array([input_data]))
+        return int(self.model.predict(np.array([input_data])))

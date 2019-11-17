@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 import Heuristic
-from Parameters import FILE_NAME, BATCH_SIZE, EPOCHS
+from Parameters import FILE_NAME, BATCH_SIZE, EPOCHS, MODEL_NAME
 
 input_list = []
 bootstrap_input = []
@@ -36,7 +36,8 @@ file.close()
 out = output_list[-1]
 inp = input_list[-1]
 data_size = len(input_list)
-train_size = int(data_size * 2 / 3)
+# train_size = int(data_size * 2 / 3)
+train_size = data_size
 # Train features
 input_train = input_list[:train_size]
 output_train = output_list[:train_size]
@@ -57,16 +58,16 @@ model.compile(loss='mse',
 model.fit(input_train, output_train, epochs=EPOCHS, batch_size=BATCH_SIZE)
 
 val_loss, val_acc = model.evaluate(input_train, output_train, batch_size=BATCH_SIZE)
-predictions = model.predict(input_test)
-
-num_predictions = data_size - train_size
-diff = 0
-for i in range(num_predictions):
-    val = predictions[i]
-    result = int(round(val[0]))
-    absolute_diff = abs(result - output_test[i])
-    print('Predicted:', result, ' Actual:', output_test[i], 'Difference:', absolute_diff)
-    diff += absolute_diff
-
-print("Error:", diff, "Mean:", diff / num_predictions)
-model.save('heuristic_exp.model')
+# predictions = model.predict(input_test)
+#
+# num_predictions = data_size - train_size
+# diff = 0
+# for i in range(num_predictions):
+#     val = predictions[i]
+#     result = int(round(val[0]))
+#     absolute_diff = abs(result - output_test[i])
+#     print('Predicted:', result, ' Actual:', output_test[i], 'Difference:', absolute_diff)
+#     diff += absolute_diff
+#
+# print("Error:", diff, "Mean:", diff / num_predictions)
+model.save(MODEL_NAME)
