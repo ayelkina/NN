@@ -19,7 +19,7 @@ class Helper:
         for name in Heuristic.Enum:
             algorithm = Astar(Heuristic.Enum.heuristic(name))
             algorithm.solve(input, GOAL)
-            # Helper.print_solution(algorithm)
+            Helper.print_solution(algorithm)
             if not algorithm.terminated:
                 solution_list.append(algorithm)
 
@@ -88,11 +88,6 @@ class Helper:
         while i < number:
             distance_to_goal = random.randint(15, 25)
             input = Tiles.random_walk(GOAL, distance_to_goal)
-            # algorithm = Astar(Heuristic.LinearConflict())
-            # algorithm.solve(input, GOAL)
-            # if algorithm.terminated:
-            #     continue
-
             input_list.append(input)
             i += 1
 
@@ -109,20 +104,21 @@ class Helper:
 
             for input in input_list:
                 algorithm.solve(input, GOAL)
+                average_expanded_nodes += algorithm.expanded_nodes
                 if algorithm.terminated:
                     terminated += 1
                 else:
-                    average_expanded_nodes += algorithm.expanded_nodes
                     average_length += len(algorithm.solution)
 
             print("Heuristic:", algorithm.heuristic.__class__.__name__)
             print("Terminated:", terminated)
             if terminated < input_size:
-                print("Average expanded nodes:", average_expanded_nodes / (input_size - terminated))
-                print("Average solution length nodes:", average_length / (input_size - terminated))
+                print("Average expanded nodes:", average_expanded_nodes / input_size)
+                print("Average solution length:", average_length / (input_size - terminated))
+            print()
 
     @staticmethod
-    def solve_tasks_by_all_heuristics(input_size):
+    def show_best_heuristic_for_tasks(input_size):
         helper = Helper()
         for i in range(input_size):
             distance_to_goal = random.randint(15, 40)

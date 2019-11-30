@@ -1,6 +1,3 @@
-import time
-
-from Parameters import TIMEOUT
 from Tiles import possible_moves
 
 
@@ -24,15 +21,12 @@ class Astar:
         self.puzzle_size = len(input[0]) - 1
         open_set = [[self.heuristic.compute(input), input]]
 
-        start = time.time()
-        break_loop = False
-        while open_set and not break_loop:
-            end = time.time()
-
-            if end - start > TIMEOUT:
+        while open_set:
+            if self.expanded_nodes > 5000:
                 self.solution = ''
                 self.terminated = True
-                break_loop = True
+                break
+
             i = 0
             for j in range(1, len(open_set)):
                 if open_set[i][0] > open_set[j][0]:
