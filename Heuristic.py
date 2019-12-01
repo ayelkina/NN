@@ -4,10 +4,9 @@ from abc import abstractmethod
 from itertools import product
 
 import numpy as np
-import tensorflow as tf
 
 import Tiles
-from Parameters import GOAL, MODEL_NAME
+from Parameters import GOAL
 
 
 class Enum(enum.Enum):
@@ -184,7 +183,7 @@ class Gasching(Heuristic):
 
 
 class NeuralNetwork(Heuristic):
-    model = tf.keras.models.load_model(MODEL_NAME)
+    # model = tf.keras.models.load_model(MODEL_NAME)
 
 
     def compute_input(self, input):

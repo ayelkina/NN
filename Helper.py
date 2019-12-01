@@ -128,3 +128,44 @@ class Helper:
             solution_list = Helper.get_solution_list(input)
             print("Best heuristic", helper.heuristic_with_less_expanded_nodes(solution_list).__class__.__name__)
             print("Iteration:", i, "NeuralNetwork won:", Helper.count)
+
+    @staticmethod
+    def get_learning_data():
+        input_list = []
+        output_list = []
+        input_dim = ''
+
+        file = open(FILE_NAME, "r")
+        training_data = file.read().splitlines()
+
+        line = 0
+        while line < len(training_data):
+            inp = eval(training_data[line])
+            input_data = Heuristic.NeuralNetwork().compute_input(inp)
+
+            input_dim = len(input_data)
+            solution_path = eval(training_data[line + 2])
+            solution_length = int(training_data[line + 1])
+
+            i = 1
+            for path in solution_path[:-1]:
+                input_data = Heuristic.NeuralNetwork().compute_input(path)
+                input_list.append(input_data)
+                output_list.append(solution_length - i)
+                i += 1
+
+            line += 3
+
+        file.close()
+        data_size = len(input_list)
+        train_size = int(data_size * 2 / 3)
+        # train_size = data_size
+        # Train features
+        input_train = input_list[:train_size]
+        output_train = output_list[:train_size]
+
+        # Test features
+        input_test = input_list[train_size:]
+        output_test = output_list[train_size:]
+
+        return input_train, output_train, input_test, output_test, input_dim
