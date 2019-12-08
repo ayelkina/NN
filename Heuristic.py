@@ -185,7 +185,6 @@ class Gasching(Heuristic):
 class NeuralNetwork(Heuristic):
     # model = tf.keras.models.load_model(MODEL_NAME)
 
-
     def compute_input(self, input):
         input_data = []
         Manh = Manhattan().compute(input)
@@ -207,3 +206,36 @@ class NeuralNetwork(Heuristic):
     def solve(self, input, puzzle_size):
         input_data = self.compute_input(input)
         return int(self.model.predict(np.array([input_data])))
+
+
+class Maximizing(Heuristic):
+    def solve(self, input, puzzle_size):
+        if input == GOAL:
+            return 0
+
+        maximum = 0
+        for heuristic in Enum:
+            if heuristic == Enum.NeuralNetwork:
+                continue
+
+            predicted_value = Enum.heuristic(heuristic).compute(input)
+
+            if predicted_value > maximum:
+                maximum = predicted_value
+
+        return maximum
+
+
+class MaximizingWithNN(Heuristic):
+    def solve(self, input, puzzle_size):
+        if input == GOAL:
+            return 0
+
+        maximum = 0
+        for heuristic in Enum:
+            predicted_value = heuristic.compute(input)
+
+            if predicted_value > maximum:
+                maximum = predicted_value
+
+        return maximum

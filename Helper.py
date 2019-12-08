@@ -34,7 +34,7 @@ class Helper:
             print("Terminated")
 
     @staticmethod
-    def heristic_with_shortest_solution(solution_list):
+    def heuristic_with_shortest_solution(solution_list):
         best_heur = ''
         best_score = 999999999
         for (Astar) in solution_list:
@@ -57,7 +57,7 @@ class Helper:
                 print("No solution. Distance:", distance_to_goal)
                 continue
 
-            best_heur = self.heristic_with_shortest_solution(solution_list)
+            best_heur = self.heuristic_with_shortest_solution(solution_list)
             print("Step", i, "Distance:", distance_to_goal)
             file_output.write(str(input))
             file_output.write("\n")
