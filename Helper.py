@@ -5,7 +5,7 @@ import Heuristic
 import Tiles
 import TrainingData
 from Astar import Astar
-from Parameters import GOAL, FILE_NAME
+from Parameters import GOAL, FILE_NAME, TIMEOUT
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -18,7 +18,7 @@ class Helper:
         solution_list = []
         for name in Heuristic.Enum:
             algorithm = Astar(Heuristic.Enum.heuristic(name))
-            algorithm.solve(input, GOAL)
+            algorithm.solve(input, TIMEOUT)
             Helper.print_solution(algorithm)
             if not algorithm.terminated:
                 solution_list.append(algorithm)
@@ -86,7 +86,7 @@ class Helper:
         input_list = []
         i = 0
         while i < number:
-            distance_to_goal = random.randint(15, 25)
+            distance_to_goal = random.randint(15, 50)
             input = Tiles.random_walk(GOAL, distance_to_goal)
             input_list.append(input)
             i += 1
@@ -103,7 +103,7 @@ class Helper:
             algorithm = Astar(Heuristic.Enum.heuristic(name))
 
             for input in input_list:
-                algorithm.solve(input, GOAL)
+                algorithm.solve(input, TIMEOUT)
                 average_expanded_nodes += algorithm.expanded_nodes
                 if algorithm.terminated:
                     terminated += 1
@@ -129,43 +129,3 @@ class Helper:
             print("Best heuristic", helper.heuristic_with_less_expanded_nodes(solution_list).__class__.__name__)
             print("Iteration:", i, "NeuralNetwork won:", Helper.count)
 
-    @staticmethod
-    def get_learning_data():
-        input_list = []
-        output_list = []
-        input_dim = ''
-
-        file = open(FILE_NAME, "r")
-        training_data = file.read().splitlines()
-
-        line = 0
-        while line < len(training_data):
-            inp = eval(training_data[line])
-            input_data = Heuristic.NeuralNetwork().compute_input(inp)
-
-            input_dim = len(input_data)
-            solution_path = eval(training_data[line + 2])
-            solution_length = int(training_data[line + 1])
-
-            i = 1
-            for path in solution_path[:-1]:
-                input_data = Heuristic.NeuralNetwork().compute_input(path)
-                input_list.append(input_data)
-                output_list.append(solution_length - i)
-                i += 1
-
-            line += 3
-
-        file.close()
-        data_size = len(input_list)
-        train_size = int(data_size * 2 / 3)
-        # train_size = data_size
-        # Train features
-        input_train = input_list[:train_size]
-        output_train = output_list[:train_size]
-
-        # Test features
-        input_test = input_list[train_size:]
-        output_test = output_list[train_size:]
-
-        return input_train, output_train, input_test, output_test, input_dim

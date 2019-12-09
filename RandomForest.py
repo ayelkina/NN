@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 from Helper import Helper
 
 model = RandomForestClassifier(n_estimators=50)
-input_train, output_train, input_test, output_test, input_dim = Helper.get_learning_data()
+input_train, output_train, input_test, output_test, input_dim = Helper.get_learning_data_from_file()
 
 model.fit(input_train, output_train)
 print(model.score(input_test, output_test))

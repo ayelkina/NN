@@ -1,3 +1,6 @@
+import time
+
+from Parameters import GOAL
 from Tiles import possible_moves
 
 
@@ -12,7 +15,7 @@ class Astar:
     def __init__(self, heuristic):
         self.heuristic = heuristic
 
-    def solve(self, input, goal):
+    def solve(self, input, timeout):
         self.expanded_nodes = 0
         expanded = []
         self.terminated = False
@@ -21,20 +24,24 @@ class Astar:
         self.puzzle_size = len(input[0]) - 1
         open_set = [[self.heuristic.compute(input), input]]
 
-        while open_set:
-            if self.expanded_nodes > 5000:
+        start = time.time()
+        break_loop = False
+        while open_set and not break_loop:
+            end = time.time()
+
+            if end - start > timeout:
                 self.solution = ''
                 self.terminated = True
-                break
-
+                break_loop = True
             i = 0
             for j in range(1, len(open_set)):
                 if open_set[i][0] > open_set[j][0]:
                     i = j
+
             self.solution = open_set[i]
             open_set = open_set[:i] + open_set[i + 1:]
             current_path = self.solution[-1]
-            if current_path == goal:
+            if current_path == GOAL:
                 break
             if current_path in expanded: continue
             for k in possible_moves(current_path, self.puzzle_size):

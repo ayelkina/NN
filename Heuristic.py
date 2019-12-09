@@ -4,9 +4,10 @@ from abc import abstractmethod
 from itertools import product
 
 import numpy as np
+import tensorflow as tf
 
 import Tiles
-from Parameters import GOAL
+from Parameters import GOAL, MODEL_NAME
 
 
 class Enum(enum.Enum):
@@ -183,9 +184,16 @@ class Gasching(Heuristic):
 
 
 class NeuralNetwork(Heuristic):
-    # model = tf.keras.models.load_model(MODEL_NAME)
+    model = ''
 
-    def compute_input(self, input):
+    def __init__(self):
+        try:
+            self.model = tf.keras.models.load_model(MODEL_NAME)
+        except IOError:
+            return
+
+    @staticmethod
+    def compute_input(input):
         input_data = []
         Manh = Manhattan().compute(input)
         Lin = LinearConflict().compute(input)
@@ -233,7 +241,7 @@ class MaximizingWithNN(Heuristic):
 
         maximum = 0
         for heuristic in Enum:
-            predicted_value = heuristic.compute(input)
+            predicted_value = Enum.heuristic(heuristic).compute(input)
 
             if predicted_value > maximum:
                 maximum = predicted_value
