@@ -1,42 +1,53 @@
 import copy
-import enum
+import pickle
 from abc import abstractmethod
+from enum import Enum
 from itertools import product
 
 import numpy as np
 import tensorflow as tf
 
-import Tiles
-from Parameters import GOAL, MODEL_NAME
+from Utils import Tiles, TrainingData
+from Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME
 
 
-class Enum(enum.Enum):
+class Name(Enum):
     LinearConflict = 1
     Manhattan = 2
     NeuralNetwork = 7
+    # RandomForest = 10
+    Maximizing = 8
+    MaximizingWithNN = 9
     Gasching = 6
     Misplaced = 3
     ColumnsMisplaced = 4
     RowsMisplaced = 5
 
-    def heuristic(self):
-        if self == Enum.LinearConflict:
-            return LinearConflict()
-        elif self == Enum.Manhattan:
-            return Manhattan()
-        elif self == Enum.Misplaced:
-            return Misplaced()
-        elif self == Enum.ColumnsMisplaced:
-            return ColumnsMisplaced()
-        elif self == Enum.RowsMisplaced:
-            return RowsMisplaced()
-        elif self == Enum.Gasching:
-            return Gasching()
-        elif self == Enum.NeuralNetwork:
-            return NeuralNetwork()
+
+def get_heuristic_by_name(name):
+    if name == Name.LinearConflict:
+        return LinearConflict()
+    elif name == Name.Manhattan:
+        return Manhattan()
+    elif name == Name.Misplaced:
+        return Misplaced()
+    elif name == Name.ColumnsMisplaced:
+        return ColumnsMisplaced()
+    elif name == Name.RowsMisplaced:
+        return RowsMisplaced()
+    elif name == Name.Gasching:
+        return Gasching()
+    elif name == Name.NeuralNetwork:
+        return NeuralNetwork()
+    elif name == Name.Maximizing:
+        return Maximizing()
+    elif name == Name.MaximizingWithNN:
+        return MaximizingWithNN()
+    elif name == Name.RandomForest:
+        return RandomForest()
 
 
-class Heuristic:
+class AbstractHeuristic:
     puzzle_size = ''
 
     def compute(self, input):
@@ -48,7 +59,7 @@ class Heuristic:
         ...
 
 
-class Misplaced(Heuristic):
+class Misplaced(AbstractHeuristic):
 
     def solve(self, input, puzzle_size):
         misplaced = 0
@@ -61,7 +72,7 @@ class Misplaced(Heuristic):
         return misplaced
 
 
-class ColumnsMisplaced(Heuristic):
+class ColumnsMisplaced(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         if input == GOAL:
             return 0
@@ -80,7 +91,7 @@ class ColumnsMisplaced(Heuristic):
         return misplaced
 
 
-class RowsMisplaced(Heuristic):
+class RowsMisplaced(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         if input == GOAL:
             return 0
@@ -103,7 +114,7 @@ class RowsMisplaced(Heuristic):
         return misplaced
 
 
-class Manhattan(Heuristic):
+class Manhattan(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         distance = 0
         for row in range(puzzle_size):
@@ -117,7 +128,7 @@ class Manhattan(Heuristic):
         return int(distance)
 
 
-class LinearConflict(Heuristic):
+class LinearConflict(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         distance = Manhattan().solve(input, puzzle_size)
         distance += self.linear_vertical_conflict(input, puzzle_size)
@@ -154,7 +165,7 @@ class LinearConflict(Heuristic):
         return lc
 
 
-class Gasching(Heuristic):
+class Gasching(AbstractHeuristic):
     goal = GOAL
 
     def solve(self, input, puzzle_size):
@@ -183,50 +194,42 @@ class Gasching(Heuristic):
         return distance
 
 
-class NeuralNetwork(Heuristic):
+class NeuralNetwork(AbstractHeuristic):
     model = ''
 
     def __init__(self):
         try:
-            self.model = tf.keras.models.load_model(MODEL_NAME)
+            self.model = tf.keras.models.load_model(NN_MODEL_NAME)
         except IOError:
             return
 
-    @staticmethod
-    def compute_input(input):
-        input_data = []
-        Manh = Manhattan().compute(input)
-        Lin = LinearConflict().compute(input)
-        Misp = Misplaced().compute(input)
-        Col_Misp = ColumnsMisplaced().compute(input)
-        Row_Misp = RowsMisplaced().compute(input)
-        Gasch = Gasching().compute(input)
-
-        input_data.append(Manh)
-        input_data.append(Lin)
-        input_data.append(Misp)
-        input_data.append(Col_Misp)
-        input_data.append(Row_Misp)
-        input_data.append(Gasch)
-
-        return input_data
-
     def solve(self, input, puzzle_size):
-        input_data = self.compute_input(input)
+        input_data = TrainingData.compute_input(input)
         return int(self.model.predict(np.array([input_data])))
 
 
-class Maximizing(Heuristic):
+class RandomForest(AbstractHeuristic):
+    model = ''
+
+    def __init__(self):
+        try:
+            self.model = pickle.load(open(RF_MODEL_NAME, 'rb'))
+        except IOError:
+            return
+
+    def solve(self, input, puzzle_size):
+        input_data = TrainingData.compute_input(input)
+        return int(self.model.predict(np.array([input_data])))
+
+
+class Maximizing(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         if input == GOAL:
             return 0
 
         maximum = 0
-        for heuristic in Enum:
-            if heuristic == Enum.NeuralNetwork:
-                continue
-
-            predicted_value = Enum.heuristic(heuristic).compute(input)
+        for index in range(1, 6):
+            predicted_value = get_heuristic_by_name(Name(index)).compute(input)
 
             if predicted_value > maximum:
                 maximum = predicted_value
@@ -234,14 +237,14 @@ class Maximizing(Heuristic):
         return maximum
 
 
-class MaximizingWithNN(Heuristic):
+class MaximizingWithNN(AbstractHeuristic):
     def solve(self, input, puzzle_size):
         if input == GOAL:
             return 0
 
         maximum = 0
-        for heuristic in Enum:
-            predicted_value = Enum.heuristic(heuristic).compute(input)
+        for index in range(1, 7):
+            predicted_value = get_heuristic_by_name(Name(index)).compute(input)
 
             if predicted_value > maximum:
                 maximum = predicted_value

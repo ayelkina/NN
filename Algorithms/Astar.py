@@ -1,7 +1,7 @@
 import time
 
-from Parameters import GOAL
-from Tiles import possible_moves
+from Utils.Parameters import GOAL
+from Utils.Tiles import possible_moves
 
 
 class Astar:
@@ -10,6 +10,7 @@ class Astar:
     expanded_nodes = 0
     input = []
     solution = []
+    solution_time = ''
     terminated = False
 
     def __init__(self, heuristic):
@@ -29,10 +30,12 @@ class Astar:
         while open_set and not break_loop:
             end = time.time()
 
-            if end - start > timeout:
+            # if end - start > timeout:
+            if self.expanded_nodes > 5000:
                 self.solution = ''
                 self.terminated = True
                 break_loop = True
+                break
             i = 0
             for j in range(1, len(open_set)):
                 if open_set[i][0] > open_set[j][0]:
@@ -52,3 +55,4 @@ class Astar:
                 expanded.append(current_path)
             self.expanded_nodes += 1
 
+        self.solution_time = time.time() - start
