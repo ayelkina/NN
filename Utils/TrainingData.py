@@ -2,6 +2,7 @@ import random
 
 from Algorithms.Astar import Astar
 from Model import Heuristic
+from Model.Heuristic import get_heuristic_by_name, Name
 from Utils import Tiles
 from Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT, TRAIN_SIZE_FACTOR
 
@@ -19,7 +20,7 @@ class TrainingData:
         self.solution_length = len(self.solution_path)
 
 
-def generate_training_data(self, n):
+def generate_training_data_to_file(self, n):
     file_output = open(FILE_NAME, "w+")
     i = 0
     while i < n:
@@ -57,7 +58,7 @@ def get_input_list_from_file(file_name):
 
         i = 1
         for path in solution_path[:-1]:
-            input_data = compute_input(path)
+            input_data, maximum = compute_input(path)
             input_list.append(input_data)
             output_list.append(solution_length - i)
             i += 1
@@ -91,21 +92,16 @@ def print_solution(algorithm):
 
 def compute_input(input):
     input_data = []
-    Manh = Heuristic.Manhattan().compute(input)
-    Lin = Heuristic.LinearConflict().compute(input)
-    Misp = Heuristic.Misplaced().compute(input)
-    Col_Misp = Heuristic.ColumnsMisplaced().compute(input)
-    Row_Misp = Heuristic.RowsMisplaced().compute(input)
-    Gasch = Heuristic.Gasching().compute(input)
+    maximum_value = 0
 
-    input_data.append(Manh)
-    input_data.append(Lin)
-    input_data.append(Misp)
-    input_data.append(Col_Misp)
-    input_data.append(Row_Misp)
-    input_data.append(Gasch)
+    for index in range(1, 7):
+        predicted_value = get_heuristic_by_name(Name(index)).compute(input)
+        input_data.append(predicted_value)
 
-    return input_data
+        if predicted_value > maximum_value:
+            maximum_value = predicted_value
+
+    return input_data, maximum_value
 
 
 def get_training_data(training_set):
@@ -113,7 +109,7 @@ def get_training_data(training_set):
     output_list = []
 
     for line in training_set:
-        input_data = compute_input(line[0])
+        input_data, maximum = compute_input(line[0])
         input_list.append(input_data)
         output_list.append(line[1])
 

@@ -6,11 +6,12 @@ from Utils.Parameters import BATCH_SIZE, EPOCHS, NN_MODEL_NAME, INPUT_DIM
 
 def learn_heuristic(training_set):
     input_list, output_list = TrainingData.get_training_data(training_set)
+    # input_list, output_list = training_set[0], training_set[1]
     input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 
     model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Dense(128, activation=tf.keras.activations.relu, input_dim=INPUT_DIM))
-    model.add(tf.keras.layers.Dense(128, activation=tf.keras.activations.relu))
+    model.add(tf.keras.layers.Dense(128, activation=tf.keras.activations.sigmoid, input_dim=INPUT_DIM))
+    model.add(tf.keras.layers.Dense(128, activation=tf.keras.activations.sigmoid))
     model.add(tf.keras.layers.Dense(1, activation=tf.keras.activations.softplus))
 
     model.compile(loss='mse',
@@ -21,7 +22,7 @@ def learn_heuristic(training_set):
 
     val_loss, val_acc = model.evaluate(input_train, output_train, batch_size=BATCH_SIZE)
     evaluate(model, input_test, output_test)
-    print("/n Loss", val_loss, "ACC", val_acc)
+    print("Loss", val_loss, "ACC", val_acc)
     model.save(NN_MODEL_NAME)
 
 

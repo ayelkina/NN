@@ -9,13 +9,13 @@ rw_ins = 500
 
 
 def run():
-    t_max = 1
+    t_max = 2
     training_set = []
     not_solved_list = Helper.generate_input_list(rw_ins)
     h_in = Heuristic.Maximizing()
-    count = -1
 
     while len(not_solved_list) >= ins_min and t_max < t_inf:
+        count = -1
         input_list = not_solved_list
         not_solved_list = []
         solved_number = 0
@@ -25,7 +25,6 @@ def run():
             algorithm = Astar(h_in)
             algorithm.solve(instance, t_max)
             if not algorithm.terminated:
-                # print("Solve")
                 solved_number += 1
                 solution_length = len(algorithm.solution) - 1
                 solution_path = algorithm.solution[1:]
@@ -34,7 +33,6 @@ def run():
                     training_set.append([solution, solution_length - i])
                     i += 1
             else:
-                # print("Terminated")
                 not_solved_list.append(instance)
 
         if solved_number > ins_min:

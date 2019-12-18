@@ -15,13 +15,13 @@ class Name(Enum):
     LinearConflict = 1
     Manhattan = 2
     NeuralNetwork = 7
-    # RandomForest = 10
     Maximizing = 8
     MaximizingWithNN = 9
     Gasching = 6
     Misplaced = 3
     ColumnsMisplaced = 4
     RowsMisplaced = 5
+    # RandomForest = 10
 
 
 def get_heuristic_by_name(name):
@@ -37,7 +37,7 @@ def get_heuristic_by_name(name):
         return RowsMisplaced()
     elif name == Name.Gasching:
         return Gasching()
-    elif name == Name.NeuralNetwork:
+    if name == Name.NeuralNetwork:
         return NeuralNetwork()
     elif name == Name.Maximizing:
         return Maximizing()
@@ -204,7 +204,7 @@ class NeuralNetwork(AbstractHeuristic):
             return
 
     def solve(self, input, puzzle_size):
-        input_data = TrainingData.compute_input(input)
+        input_data, maximum_value = TrainingData.compute_input(input)
         return int(self.model.predict(np.array([input_data])))
 
 
@@ -218,7 +218,7 @@ class RandomForest(AbstractHeuristic):
             return
 
     def solve(self, input, puzzle_size):
-        input_data = TrainingData.compute_input(input)
+        input_data, maximum = TrainingData.compute_input(input)
         return int(self.model.predict(np.array([input_data])))
 
 
@@ -238,15 +238,24 @@ class Maximizing(AbstractHeuristic):
 
 
 class MaximizingWithNN(AbstractHeuristic):
+    model = ''
+
+    def __init__(self):
+        try:
+            self.model = tf.keras.models.load_model(NN_MODEL_NAME)
+        except IOError:
+            return
+
     def solve(self, input, puzzle_size):
         if input == GOAL:
             return 0
 
-        maximum = 0
-        for index in range(1, 7):
-            predicted_value = get_heuristic_by_name(Name(index)).compute(input)
+        return self.get_maximum_value(input)
 
-            if predicted_value > maximum:
-                maximum = predicted_value
+    def get_maximum_value(self, input):
+        input_data, maximum_value = TrainingData.compute_input(input)
+        distance = int(self.model.predict(np.array([input_data])))
+        if distance > maximum_value:
+            maximum_value = distance
 
-        return maximum
+        return maximum_value

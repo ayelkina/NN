@@ -1,14 +1,17 @@
-from pylab import *
+import matplotlib.pyplot as plt
 
+from Model.Heuristic import *
 from Utils import CompareHeuristics
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 if __name__ == "__main__":
+    # input = CompareHeuristics.generate_input_list(1)
+    # algorithm = Astar(MaximizingWithNN())
+    # algorithm.solve(input[0], 100)
+    # print(len(algorithm.solution) -2)
+
     # Bootstrap.run()
     print("Finish bootstrap")
-
-    x, y = CompareHeuristics.compare(20)
+    x, y = CompareHeuristics.compare(10)
     x_pos = np.arange(len(x))
 
     plt.barh(x_pos, y, align='center', alpha=1)

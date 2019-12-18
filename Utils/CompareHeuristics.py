@@ -23,13 +23,14 @@ def compare(input_size):
             if algorithm.terminated:
                 terminated += 1
             else:
-                average_length += len(algorithm.solution)
+                average_length += len(algorithm.solution) - 2
 
         print("Heuristic:", algorithm.heuristic.__class__.__name__)
         print("Terminated:", terminated)
-        # if terminated < input_size:
+        if terminated < input_size:
+            print("Average solution length:", average_length / (input_size - terminated))
+
         print("Average expanded nodes:", average_expanded_nodes / input_size)
-        # print("Average solution length:", average_length / (input_size - terminated))
         # print("Solution time", algorithm.solution_time)
         # print("Solution", algorithm.solution)
         x.append(algorithm.heuristic.__class__.__name__)
@@ -43,6 +44,8 @@ def generate_input_list(number):
     i = 0
     while i < number:
         distance_to_goal = random.randint(MIN_DISTANCE, MAX_DISTANCE)
+        # distance_to_goal = 15
+        print("Distance to goal", distance_to_goal)
         input = Tiles.random_walk(GOAL, distance_to_goal)
         input_list.append(input)
         i += 1
