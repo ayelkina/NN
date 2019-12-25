@@ -1,8 +1,7 @@
 import random
 
-from Utils import Tiles
-from Utils.Parameters import GOAL, MIN_DISTANCE, MAX_DISTANCE
-
+from package.Utils import Tiles
+from package.Utils.Parameters import GOAL, MIN_DISTANCE, MAX_DISTANCE
 
 def generate_input_list(number):
     input_list = []

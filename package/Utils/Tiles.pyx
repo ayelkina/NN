@@ -50,9 +50,10 @@ def random_walk(goal, moves_from_goal):
 
     return tiles
 
-
-def possible_moves(tiles, puzzle_size):
-    output = []
+cpdef list possible_moves(list tiles, int puzzle_size):
+    cdef list output = []
+    cdef list new_list
+    cdef int col, row
     col, row = get_zero_position(tiles)
 
     if row > 0:
@@ -79,27 +80,24 @@ def possible_moves(tiles, puzzle_size):
 
 
 def get_zero_position(tiles):
-    row = 0
+    cdef int row = 0
+    cdef int col
     while 0 not in tiles[row]: row += 1
     col = tiles[row].index(0)
     return col, row
 
-
-def move_up(new_list, col, row):
+cpdef list move_up(list new_list, int col, int row):
     new_list[row][col], new_list[row - 1][col] = new_list[row - 1][col], new_list[row][col]
     return new_list
 
-
-def move_down(new_list, col, row):
+cpdef list move_down(list new_list, int col, int row):
     new_list[row][col], new_list[row + 1][col] = new_list[row + 1][col], new_list[row][col]
     return new_list
 
-
-def move_left(new_list, col, row):
+cpdef list move_left(list new_list, int col, int row):
     new_list[row][col], new_list[row][col - 1] = new_list[row][col - 1], new_list[row][col]
     return new_list
 
-
-def move_right(new_list, col, row):
+cpdef list move_right(list new_list, int col, int row):
     new_list[row][col], new_list[row][col + 1] = new_list[row][col + 1], new_list[row][col]
     return new_list

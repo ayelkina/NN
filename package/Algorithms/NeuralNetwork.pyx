@@ -1,11 +1,10 @@
 import tensorflow as tf
 
-from Utils import TrainingData
-from Utils.Parameters import BATCH_SIZE, EPOCHS, NN_MODEL_NAME, INPUT_DIM
+from package.Utils import TrainingData
+from package.Utils.Parameters import BATCH_SIZE, EPOCHS, NN_MODEL_NAME, INPUT_DIM
 
-
-def learn_heuristic(training_set):
-    input_list, output_list = TrainingData.get_training_data(training_set)
+def learn_heuristic(training_set, maximizing_heuristic):
+    input_list, output_list = TrainingData.get_training_data(training_set, maximizing_heuristic)
     # input_list, output_list = training_set[0], training_set[1]
     input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 

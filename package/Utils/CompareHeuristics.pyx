@@ -1,11 +1,11 @@
 import random
 
 from Algorithms.Astar import Astar
-from Model import Heuristic
-from Model.Heuristic import get_heuristic_by_name
-from Utils import Tiles
-from Utils.Parameters import MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT
 
+from package.Model import Heuristic
+from package.Model.Heuristic import get_heuristic_by_name
+from package.Utils import Tiles
+from package.Utils.Parameters import MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT
 
 def compare(input_size):
     x = []

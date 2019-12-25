@@ -1,10 +1,11 @@
 import random
 
-from Algorithms.Astar import Astar
-from Model import Heuristic
-from Model.Heuristic import get_heuristic_by_name, Name
-from Utils import Tiles
-from Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT, TRAIN_SIZE_FACTOR
+from package.Algorithms.Astar import Astar
+from package.Model import Heuristic
+# from Model.Heuristic import get_heuristic_by_name, Name
+from package.Model.Heuristic import compute_input
+from package.Utils import Tiles
+from package.Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT, TRAIN_SIZE_FACTOR
 
 
 class TrainingData:
@@ -58,7 +59,7 @@ def get_input_list_from_file(file_name):
 
         i = 1
         for path in solution_path[:-1]:
-            input_data, maximum = compute_input(path)
+            input_data = compute_input(path)
             input_list.append(input_data)
             output_list.append(solution_length - i)
             i += 1
@@ -89,27 +90,37 @@ def print_solution(algorithm):
     else:
         print("Terminated")
 
+# def compute_input(input):
+#     predicted_values = []
+#     maximum_value = 0
+#
+#     for index in range(1, 7):
+#         predicted_value = Heuristic.get_heuristic_by_name(Heuristic.Name(index)).compute(input)
+#         predicted_values.append(predicted_value)
+#
+#         if predicted_value > maximum_value:
+#             maximum_value = predicted_value
+#
+#     predicted_values.append(maximum_value)
+#
+#     return predicted_values
 
-def compute_input(input):
-    input_data = []
-    maximum_value = 0
 
-    for index in range(1, 7):
-        predicted_value = get_heuristic_by_name(Name(index)).compute(input)
-        input_data.append(predicted_value)
+def get_predicted_values_with_maximum(input, maximizing_heuristic):
+    predicted_values = compute_input(input)
 
-        if predicted_value > maximum_value:
-            maximum_value = predicted_value
+    if maximizing_heuristic.__class__ == Heuristic.MaximizingWithNN:
+        predicted_maximum = maximizing_heuristic.compute_maximum_from_predicted_values(predicted_values)
+        predicted_values[:-1] = predicted_maximum
 
-    return input_data, maximum_value
+    return predicted_values
 
-
-def get_training_data(training_set):
+def get_training_data(training_set, maximizing_heuristic):
     input_list = []
     output_list = []
 
     for line in training_set:
-        input_data, maximum = compute_input(line[0])
+        input_data = get_predicted_values_with_maximum(line[0], maximizing_heuristic)
         input_list.append(input_data)
         output_list.append(line[1])
 

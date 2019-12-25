@@ -7,8 +7,8 @@ from itertools import product
 import numpy as np
 import tensorflow as tf
 
-from Utils import Tiles, TrainingData
-from Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME
+from package.Utils import Tiles
+from package.Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME
 
 
 class Name(Enum):
@@ -50,20 +50,21 @@ def get_heuristic_by_name(name):
 class AbstractHeuristic:
     puzzle_size = ''
 
-    def compute(self, input):
-        puzzle_size = len(input[0])
+    def compute(self, list input):
+        cdef int puzzle_size = len(input[0])
         return self.solve(input, puzzle_size)
 
     @abstractmethod
-    def solve(self, input, puzzle_size):
+    def solve(self, list input, int puzzle_size):
         ...
 
 
 class Misplaced(AbstractHeuristic):
 
-    def solve(self, input, puzzle_size):
-        misplaced = 0
-        goal_value = 0
+    def solve(self, list input, int puzzle_size):
+        cdef int misplaced = 0
+        cdef int goal_value = 0
+        cdef int row, col
         for row in range(puzzle_size):
             for col in range(puzzle_size):
                 if input[row][col] != goal_value and input[row][col] != 0:
@@ -73,11 +74,13 @@ class Misplaced(AbstractHeuristic):
 
 
 class ColumnsMisplaced(AbstractHeuristic):
-    def solve(self, input, puzzle_size):
+    def solve(self, list input, int puzzle_size):
         if input == GOAL:
             return 0
 
-        misplaced = 0
+        cdef int misplaced = 0
+        cdef int goal_value = 0
+        cdef int row, col, col_goal
         for row in range(puzzle_size):
             for col in range(puzzle_size):
                 col_goal = input[row][col] % puzzle_size
@@ -92,11 +95,12 @@ class ColumnsMisplaced(AbstractHeuristic):
 
 
 class RowsMisplaced(AbstractHeuristic):
-    def solve(self, input, puzzle_size):
+    def solve(self, list input, int puzzle_size):
         if input == GOAL:
             return 0
 
-        misplaced = 0
+        cdef int misplaced = 0
+        cdef int col_goal, row_goal, row, col, value
         for row in range(puzzle_size):
             for col in range(puzzle_size):
                 value = input[row][col]
@@ -115,8 +119,10 @@ class RowsMisplaced(AbstractHeuristic):
 
 
 class Manhattan(AbstractHeuristic):
-    def solve(self, input, puzzle_size):
-        distance = 0
+    def solve(self, list input, int puzzle_size):
+        cdef int distance = 0
+        cdef int col_goal, row_goal, row, col, value
+
         for row in range(puzzle_size):
             for col in range(puzzle_size):
                 value = input[row][col]
@@ -129,15 +135,16 @@ class Manhattan(AbstractHeuristic):
 
 
 class LinearConflict(AbstractHeuristic):
-    def solve(self, input, puzzle_size):
-        distance = Manhattan().solve(input, puzzle_size)
+    def solve(self, list input, int puzzle_size):
+        cdef int distance = Manhattan().solve(input, puzzle_size)
         distance += self.linear_vertical_conflict(input, puzzle_size)
         distance += self.linear_horizontal_conflict(input, puzzle_size)
         return distance
 
     @staticmethod
     def linear_vertical_conflict(input, puzzle_size):
-        lc = 0
+        cdef int distance = 0
+        cdef int max, cellvalue, row, col
         for row in range(puzzle_size):
             max = -1
             for col in range(puzzle_size):
@@ -146,12 +153,13 @@ class LinearConflict(AbstractHeuristic):
                     if cellvalue > max:
                         max = cellvalue
                     else:
-                        lc += 2
-        return lc
+                        distance += 2
+        return distance
 
     @staticmethod
     def linear_horizontal_conflict(input, puzzle_size):
-        lc = 0
+        cdef int distance = 0
+        cdef int max, cellvalue, row, col
         for col in range(puzzle_size):
             max = -1
             for row in range(puzzle_size):
@@ -160,20 +168,20 @@ class LinearConflict(AbstractHeuristic):
                     if cellvalue > max:
                         max = cellvalue
                     else:
-                        lc += 2
+                        distance += 2
 
-        return lc
+        return distance
 
 
 class Gasching(AbstractHeuristic):
-    goal = GOAL
 
-    def solve(self, input, puzzle_size):
-        tiles = copy.deepcopy(input)
-        distance = 0
+    def solve(self, list input, int puzzle_size):
+        cdef list tiles = copy.deepcopy(input)
+        cdef int distance = 0
+        cdef int goal_value, cellvalue, row, col, zero_col, zero_row
         zero_col, zero_row = Tiles.get_zero_position(tiles)
 
-        while tiles != self.goal:
+        while tiles != GOAL:
             goal_value = zero_row * puzzle_size + zero_col
             if goal_value == 0:
                 for row, col in product(range(puzzle_size), range(puzzle_size)):
@@ -203,8 +211,8 @@ class NeuralNetwork(AbstractHeuristic):
         except IOError:
             return
 
-    def solve(self, input, puzzle_size):
-        input_data, maximum_value = TrainingData.compute_input(input)
+    def solve(self, list input, int puzzle_size):
+        cdef list input_data = compute_input(input)
         return int(self.model.predict(np.array([input_data])))
 
 
@@ -217,19 +225,21 @@ class RandomForest(AbstractHeuristic):
         except IOError:
             return
 
-    def solve(self, input, puzzle_size):
-        input_data, maximum = TrainingData.compute_input(input)
+    def solve(self, list input, int puzzle_size):
+        cdef list input_data = compute_input(input)
         return int(self.model.predict(np.array([input_data])))
 
 
 class Maximizing(AbstractHeuristic):
-    def solve(self, input, puzzle_size):
+    def solve(self, list input, int puzzle_size):
         if input == GOAL:
             return 0
 
-        maximum = 0
-        for index in range(1, 6):
-            predicted_value = get_heuristic_by_name(Name(index)).compute(input)
+        cdef int maximum = 0
+        cdef int predicted_value
+        cdef list heur = [LinearConflict(), Gasching()]
+        for h in heur:
+            predicted_value = h.compute(input)
 
             if predicted_value > maximum:
                 maximum = predicted_value
@@ -246,16 +256,44 @@ class MaximizingWithNN(AbstractHeuristic):
         except IOError:
             return
 
-    def solve(self, input, puzzle_size):
+    def solve(self, list input, int puzzle_size):
         if input == GOAL:
             return 0
 
         return self.get_maximum_value(input)
 
     def get_maximum_value(self, input):
-        input_data, maximum_value = TrainingData.compute_input(input)
-        distance = int(self.model.predict(np.array([input_data])))
+        cdef list predicted_values = compute_input(input)
+        cdef int maximum_value = predicted_values[-1]
+
+        cdef int distance = int(self.model.predict(np.array([predicted_values])))
         if distance > maximum_value:
             maximum_value = distance
 
         return maximum_value
+
+    def compute_maximum_from_predicted_values(self, predicted_values):
+        cdef int maximum_value = 0
+
+        cdef int distance = int(self.model.predict(np.array([predicted_values])))
+        if distance > predicted_values[-1]:
+            maximum_value = distance
+
+        return maximum_value
+
+
+def compute_input(input):
+    cdef list predicted_values = []
+    cdef int maximum_value = 0
+    cdef int index, predicted_value
+
+    for index in range(1, 7):
+        predicted_value = get_heuristic_by_name(Name(index)).compute(input)
+        predicted_values.append(predicted_value)
+
+        if predicted_value > maximum_value:
+            maximum_value = predicted_value
+
+    predicted_values.append(maximum_value)
+
+    return predicted_values

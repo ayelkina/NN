@@ -2,20 +2,21 @@ import pickle
 
 from sklearn.ensemble import RandomForestClassifier
 
-from Utils import TrainingData
-from Utils.Parameters import RF_MODEL_NAME
+from package.Utils import TrainingData
+from package.Utils.Parameters import RF_MODEL_NAME
 
-
-def learn_heuristic(training_set):
-    input_list, output_list = TrainingData.get_training_data(training_set)
+def learn_heuristic(training_set, maximizing_heuristic):
+    input_list, output_list = TrainingData.get_training_data(training_set, maximizing_heuristic)
     input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 
-    model = RandomForestClassifier(n_estimators=50)
+    model = RandomForestClassifier(n_estimators=150)
     model.fit(input_train, output_train)
     model.score(input_train, output_train)
 
     evaluate(model, input_test, output_test)
     pickle.dump(model, open(RF_MODEL_NAME, 'wb'))
+
+    return model
 
 
 def evaluate(model, input_test, output_test):

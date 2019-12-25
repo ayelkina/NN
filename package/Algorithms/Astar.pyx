@@ -1,39 +1,35 @@
-import time
+from package.Utils.Parameters import GOAL
+from package.Utils.Tiles import possible_moves
 
-from Utils.Parameters import GOAL
-from Utils.Tiles import possible_moves
-
-
-class Astar:
-    heuristic = ''
-    puzzle_size = ''
-    expanded_nodes = 0
-    solution = []
-    solution_time = ''
-    terminated = False
+cdef class Astar:
+    cdef public:
+        object heuristic
+        cdef int puzzle_size
+        cdef int expanded_nodes
+        cdef list solution
+        terminated
 
     def __init__(self, heuristic):
         self.heuristic = heuristic
 
-    def solve(self, input, timeout):
+    cpdef void solve(self, input, int nodes_limit):
         self.expanded_nodes = 0
-        expanded = []
         self.terminated = False
         self.solution = []
         self.puzzle_size = len(input[0]) - 1
-        open_set = [[0, input]]
+        cdef list expanded = []
+        cdef list open_set = [[0, input]]
+        cdef int shortest_solution_index = 0
+        cdef int i, cost
+        cdef list current_path = []
+        cdef list path, new_path
 
-        start = time.time()
         while open_set:
-            end = time.time()
-
-            # if end - start > timeout:
-            if self.expanded_nodes > 10000:
-                self.solution = ''
+            if self.expanded_nodes > nodes_limit:
+                self.solution = []
                 self.terminated = True
                 break
 
-            shortest_solution_index = 0
             for i in range(1, len(open_set)):
                 if open_set[shortest_solution_index][0] > open_set[i][0]:
                     shortest_solution_index = i
