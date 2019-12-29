@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from package.Utils import Tiles
-from package.Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME
+from package.Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME, PUZZLE_SIZE
 
 
 class Name(Enum):
@@ -48,11 +48,10 @@ def get_heuristic_by_name(name):
 
 
 class AbstractHeuristic:
-    puzzle_size = ''
+    puzzle_size = PUZZLE_SIZE
 
     def compute(self, list input):
-        cdef int puzzle_size = len(input[0])
-        return self.solve(input, puzzle_size)
+        return self.solve(input, PUZZLE_SIZE)
 
     @abstractmethod
     def solve(self, list input, int puzzle_size):
@@ -64,12 +63,19 @@ class Misplaced(AbstractHeuristic):
     def solve(self, list input, int puzzle_size):
         cdef int misplaced = 0
         cdef int goal_value = 0
-        cdef int row, col
+        cdef int row, col, value
+
         for row in range(puzzle_size):
             for col in range(puzzle_size):
-                if input[row][col] != goal_value and input[row][col] != 0:
+                value = input[row][col]
+                if value == 0:
+                    goal_value += 1
+                    continue
+
+                if value != goal_value:
                     misplaced += 1
                 goal_value += 1
+
         return misplaced
 
 
@@ -80,17 +86,17 @@ class ColumnsMisplaced(AbstractHeuristic):
 
         cdef int misplaced = 0
         cdef int goal_value = 0
-        cdef int row, col, col_goal
+        cdef int row, col, col_goal, value
         for row in range(puzzle_size):
             for col in range(puzzle_size):
-                col_goal = input[row][col] % puzzle_size
-                if input[row][col] == 0:
+                value = input[row][col]
+                if value == 0:
                     continue
+
+                col_goal = value % puzzle_size
                 if col != col_goal:
                     misplaced += 1
 
-        if misplaced == 0:
-            misplaced += 1
         return misplaced
 
 
@@ -111,9 +117,6 @@ class RowsMisplaced(AbstractHeuristic):
                 row_goal = (value - col_goal) / puzzle_size
                 if row != row_goal:
                     misplaced += 1
-
-        if misplaced == 0:
-            misplaced += 1
 
         return misplaced
 
@@ -137,7 +140,7 @@ class Manhattan(AbstractHeuristic):
 class LinearConflict(AbstractHeuristic):
     def solve(self, list input, int puzzle_size):
         cdef int distance = Manhattan().solve(input, puzzle_size)
-        distance += self.linear_vertical_conflict(input, puzzle_size)
+        # distance += self.linear_vertical_conflict(input, puzzle_size)
         distance += self.linear_horizontal_conflict(input, puzzle_size)
         return distance
 

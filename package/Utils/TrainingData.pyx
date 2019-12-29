@@ -111,7 +111,7 @@ def get_predicted_values_with_maximum(input, maximizing_heuristic):
 
     if maximizing_heuristic.__class__ == Heuristic.MaximizingWithNN:
         predicted_maximum = maximizing_heuristic.compute_maximum_from_predicted_values(predicted_values)
-        predicted_values[:-1] = predicted_maximum
+        predicted_values[-1] = predicted_maximum
 
     return predicted_values
 
