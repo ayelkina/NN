@@ -1,27 +1,20 @@
 import pyximport
-
 pyximport.install()
 
-from package.Algorithms import NeuralNetwork
 from package.Algorithms.Astar import Astar
 from package.Model import Heuristic
 from package.Utils import Helper
 
 cdef int ins_min = 75
-cdef int NODES_MAX = 3000
+cdef int NODES_MAX = 4000
 cdef int nodes_max = NODES_MAX * 8
 cdef int rw_ins = 500
 
 
-cpdef void run():
+cpdef void run(learning_model):
     cdef int nodes_limit = NODES_MAX
     cdef list training_set = []
-    # file_output = open("generated_list", "w+")
-    # file_solved = open("solved_10000", "w+")
-    # file_not_solved = open("not_solved_10000", "w+")
     cdef list not_solved_list = Helper.generate_input_list(rw_ins)
-    # file_output.write(str(not_solved_list))
-    # file_output.close()
     h_in = Heuristic.Maximizing()
     cdef int solved_number = 0
     cdef int count, solution_length, i
@@ -45,22 +38,16 @@ cpdef void run():
                 for solution in solution_path:
                     training_set.append([solution, solution_length - i])
                     i += 1
-                    # file_solved.write(str([solution, solution_length - i]))
             else:
                 not_solved_list.append(instance)
-                # file_not_solved.write(str(instance))
 
         if solved_number >= ins_min:
             print("Solved number:", solved_number)
             solved_number = 0
             not_solved_number = len(not_solved_list)
-            NeuralNetwork.learn_heuristic(training_set, h_in)
-            # RandomForest.learn_heuristic(training_set)
-            h_in = Heuristic.MaximizingWithNN()
+            learning_model.learn_heuristic(training_set, h_in)
+            h_in = learning_model.get_maximizing_heuristic()
             training_set = []
         else:
             print("not solved")
             nodes_limit *= 2
-
-    # file_solved.close()
-    # file_not_solved.close()

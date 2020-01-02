@@ -1,16 +1,17 @@
 import random
 
 from package.Algorithms.Astar import Astar
-from package.Model import Heuristic
 from package.Utils import Tiles
+from package.Model import Heuristic
 from package.Utils.Parameters import MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT
 
-def compare(input_size):
+def compare(input_size, learning_model):
     x = []
     y = []
     input_list = generate_input_list(input_size)
-    heuristics = [Heuristic.Manhattan(), Heuristic.Maximizing(), Heuristic.RowsMisplaced(), Heuristic.Misplaced(),
-                  Heuristic.MaximizingWithNN()]
+    heuristics = [Heuristic.Maximizing(), learning_model.get_base_heuristic(),
+                  learning_model.get_maximizing_heuristic()]
+    print(heuristics)
     for name in heuristics:
         average_expanded_nodes = 0
         average_length = 0
@@ -20,8 +21,6 @@ def compare(input_size):
         for input in input_list:
             algorithm.solve(input, TIMEOUT)
             average_expanded_nodes += algorithm.expanded_nodes
-            print("Length", len(algorithm.solution.path) - 1)
-            print("Solution", algorithm.solution.path)
             if algorithm.terminated:
                 terminated += 1
             else:
@@ -46,10 +45,8 @@ def generate_input_list(number):
     i = 0
     while i < number:
         distance_to_goal = random.randint(MIN_DISTANCE, MAX_DISTANCE)
-        # distance_to_goal = 15
         print("Distance to goal", distance_to_goal)
         input = Tiles.random_walk(GOAL, distance_to_goal)
-        print("Input", input)
         input_list.append(input)
         i += 1
 

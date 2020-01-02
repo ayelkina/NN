@@ -57,6 +57,10 @@ class AbstractHeuristic:
     def solve(self, list input, int puzzle_size):
         ...
 
+    @staticmethod
+    def get_predicted_values_with_maximum(predicted_values):
+        ...
+
 
 class Misplaced(AbstractHeuristic):
 
@@ -215,9 +219,8 @@ class NeuralNetwork(AbstractHeuristic):
             return
 
     def solve(self, list input, int puzzle_size):
-        cdef list input_data = compute_input(input)
+        cdef list input_data = get_predicted_values_from_heuristics(input)
         return int(self.model.predict(np.array([input_data])))
-
 
 class RandomForest(AbstractHeuristic):
     model = ''
@@ -229,7 +232,7 @@ class RandomForest(AbstractHeuristic):
             return
 
     def solve(self, list input, int puzzle_size):
-        cdef list input_data = compute_input(input)
+        cdef list input_data = get_predicted_values_from_heuristics(input)
         return int(self.model.predict(np.array([input_data])))
 
 
@@ -249,6 +252,10 @@ class Maximizing(AbstractHeuristic):
 
         return maximum
 
+    @staticmethod
+    def get_predicted_values_with_maximum(input):
+        return get_predicted_values_from_heuristics(input)
+
 
 class MaximizingWithNN(AbstractHeuristic):
     model = ''
@@ -266,26 +273,51 @@ class MaximizingWithNN(AbstractHeuristic):
         return self.get_maximum_value(input)
 
     def get_maximum_value(self, input):
-        cdef list predicted_values = compute_input(input)
+        predicted_values = self.get_predicted_values_with_maximum(input)
+        return predicted_values[-1]
+
+    def get_predicted_values_with_maximum(self, input):
+        cdef list predicted_values = get_predicted_values_from_heuristics(input)
         cdef int maximum_value = predicted_values[-1]
 
         cdef int distance = int(self.model.predict(np.array([predicted_values])))
         if distance > maximum_value:
-            maximum_value = distance
+            predicted_values[-1] = distance
 
-        return maximum_value
+        return predicted_values
 
-    def compute_maximum_from_predicted_values(self, predicted_values):
-        cdef int maximum_value = 0
+
+class MaximizingWithRF(AbstractHeuristic):
+    model = ''
+
+    def __init__(self):
+        try:
+            self.model = pickle.load(open(RF_MODEL_NAME, 'rb'))
+        except IOError:
+            return
+
+    def solve(self, list input, int puzzle_size):
+        if input == GOAL:
+            return 0
+
+        return self.get_maximum_value(input)
+
+    def get_maximum_value(self, input):
+        predicted_values = self.get_predicted_values_with_maximum(input)
+        return predicted_values[-1]
+
+    def get_predicted_values_with_maximum(self, input):
+        cdef list predicted_values = get_predicted_values_from_heuristics(input)
+        cdef int maximum_value = predicted_values[-1]
 
         cdef int distance = int(self.model.predict(np.array([predicted_values])))
-        if distance > predicted_values[-1]:
-            maximum_value = distance
+        if distance > maximum_value:
+            predicted_values[-1] = distance
 
-        return maximum_value
+        return predicted_values
 
 
-def compute_input(input):
+def get_predicted_values_from_heuristics(input):
     cdef list predicted_values = []
     cdef int maximum_value = 0
     cdef int index, predicted_value
