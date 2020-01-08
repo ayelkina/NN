@@ -8,7 +8,6 @@ import numpy as np
 import tensorflow as tf
 
 from package.Utils import Tiles
-from package.Utils.Parameters import GOAL, NN_MODEL_NAME, RF_MODEL_NAME, PUZZLE_SIZE
 
 
 class Name(Enum):
@@ -48,23 +47,24 @@ def get_heuristic_by_name(name):
 
 
 class AbstractHeuristic:
-    puzzle_size = PUZZLE_SIZE
+    puzzle_size = ''
 
-    def compute(self, list input):
-        return self.solve(input, PUZZLE_SIZE)
+    def compute(self, input, goal):
+        self.puzzle_size = len(input[0])
+        return self.solve(input, self.puzzle_size, goal)
 
     @abstractmethod
-    def solve(self, list input, int puzzle_size):
+    def solve(self, list input, int puzzle_size, goal):
         ...
 
     @staticmethod
-    def get_predicted_values_with_maximum(predicted_values):
+    def get_predicted_values_with_maximum(predicted_values, goal):
         ...
 
 
 class Misplaced(AbstractHeuristic):
 
-    def solve(self, list input, int puzzle_size):
+    def solve(self, list input, int puzzle_size, goal):
         cdef int misplaced = 0
         cdef int goal_value = 0
         cdef int row, col, value
@@ -84,8 +84,8 @@ class Misplaced(AbstractHeuristic):
 
 
 class ColumnsMisplaced(AbstractHeuristic):
-    def solve(self, list input, int puzzle_size):
-        if input == GOAL:
+    def solve(self, list input, int puzzle_size, goal):
+        if input == goal:
             return 0
 
         cdef int misplaced = 0
@@ -105,8 +105,8 @@ class ColumnsMisplaced(AbstractHeuristic):
 
 
 class RowsMisplaced(AbstractHeuristic):
-    def solve(self, list input, int puzzle_size):
-        if input == GOAL:
+    def solve(self, list input, int puzzle_size, goal):
+        if input == goal:
             return 0
 
         cdef int misplaced = 0
@@ -126,7 +126,7 @@ class RowsMisplaced(AbstractHeuristic):
 
 
 class Manhattan(AbstractHeuristic):
-    def solve(self, list input, int puzzle_size):
+    def solve(self, list input, int puzzle_size, goal):
         cdef int distance = 0
         cdef int col_goal, row_goal, row, col, value
 
@@ -142,8 +142,8 @@ class Manhattan(AbstractHeuristic):
 
 
 class LinearConflict(AbstractHeuristic):
-    def solve(self, list input, int puzzle_size):
-        cdef int distance = Manhattan().solve(input, puzzle_size)
+    def solve(self, list input, int puzzle_size, goal):
+        cdef int distance = Manhattan().solve(input, puzzle_size, goal)
         # distance += self.linear_vertical_conflict(input, puzzle_size)
         distance += self.linear_horizontal_conflict(input, puzzle_size)
         return distance
@@ -181,14 +181,13 @@ class LinearConflict(AbstractHeuristic):
 
 
 class Gasching(AbstractHeuristic):
-
-    def solve(self, list input, int puzzle_size):
+    def solve(self, list input, int puzzle_size, goal):
         cdef list tiles = copy.deepcopy(input)
         cdef int distance = 0
         cdef int goal_value, cellvalue, row, col, zero_col, zero_row
         zero_col, zero_row = Tiles.get_zero_position(tiles)
 
-        while tiles != GOAL:
+        while tiles != goal:
             goal_value = zero_row * puzzle_size + zero_col
             if goal_value == 0:
                 for row, col in product(range(puzzle_size), range(puzzle_size)):
@@ -212,40 +211,40 @@ class Gasching(AbstractHeuristic):
 class NeuralNetwork(AbstractHeuristic):
     model = ''
 
-    def __init__(self):
+    def __init__(self, model_name):
         try:
-            self.model = tf.keras.models.load_model(NN_MODEL_NAME)
+            self.model = tf.keras.models.load_model(model_name)
         except IOError:
             return
 
-    def solve(self, list input, int puzzle_size):
-        cdef list input_data = get_predicted_values_from_heuristics(input)
+    def solve(self, list input, int puzzle_size, goal):
+        cdef list input_data = get_predicted_values_from_heuristics(input, goal)
         return int(self.model.predict(np.array([input_data])))
 
 class RandomForest(AbstractHeuristic):
     model = ''
 
-    def __init__(self):
+    def __init__(self, model_name):
         try:
-            self.model = pickle.load(open(RF_MODEL_NAME, 'rb'))
+            self.model = pickle.load(open(model_name, 'rb'))
         except IOError:
             return
 
-    def solve(self, list input, int puzzle_size):
-        cdef list input_data = get_predicted_values_from_heuristics(input)
+    def solve(self, list input, int puzzle_size, goal):
+        cdef list input_data = get_predicted_values_from_heuristics(input, goal)
         return int(self.model.predict(np.array([input_data])))
 
 
 class Maximizing(AbstractHeuristic):
-    def solve(self, list input, int puzzle_size):
-        if input == GOAL:
+    def solve(self, list input, int puzzle_size, goal):
+        if input == goal:
             return 0
 
         cdef int maximum = 0
         cdef int predicted_value
         cdef list heur = [LinearConflict(), Gasching()]
         for h in heur:
-            predicted_value = h.compute(input)
+            predicted_value = h.compute(input, goal)
 
             if predicted_value > maximum:
                 maximum = predicted_value
@@ -253,31 +252,31 @@ class Maximizing(AbstractHeuristic):
         return maximum
 
     @staticmethod
-    def get_predicted_values_with_maximum(input):
-        return get_predicted_values_from_heuristics(input)
+    def get_predicted_values_with_maximum(input, goal):
+        return get_predicted_values_from_heuristics(input, goal)
 
 
 class MaximizingWithNN(AbstractHeuristic):
     model = ''
 
-    def __init__(self):
+    def __init__(self, model_name):
         try:
-            self.model = tf.keras.models.load_model(NN_MODEL_NAME)
+            self.model = tf.keras.models.load_model(model_name)
         except IOError:
             return
 
-    def solve(self, list input, int puzzle_size):
-        if input == GOAL:
+    def solve(self, list input, int puzzle_size, goal):
+        if input == goal:
             return 0
 
-        return self.get_maximum_value(input)
+        return self.get_maximum_value(input, goal)
 
-    def get_maximum_value(self, input):
-        predicted_values = self.get_predicted_values_with_maximum(input)
+    def get_maximum_value(self, input, goal):
+        predicted_values = self.get_predicted_values_with_maximum(input, goal)
         return predicted_values[-1]
 
-    def get_predicted_values_with_maximum(self, input):
-        cdef list predicted_values = get_predicted_values_from_heuristics(input)
+    def get_predicted_values_with_maximum(self, input, goal):
+        cdef list predicted_values = get_predicted_values_from_heuristics(input, goal)
         cdef int maximum_value = predicted_values[-1]
 
         cdef int distance = int(self.model.predict(np.array([predicted_values])))
@@ -290,24 +289,24 @@ class MaximizingWithNN(AbstractHeuristic):
 class MaximizingWithRF(AbstractHeuristic):
     model = ''
 
-    def __init__(self):
+    def __init__(self, model_name):
         try:
-            self.model = pickle.load(open(RF_MODEL_NAME, 'rb'))
+            self.model = pickle.load(open(model_name, 'rb'))
         except IOError:
             return
 
-    def solve(self, list input, int puzzle_size):
-        if input == GOAL:
+    def solve(self, list input, int puzzle_size, goal):
+        if input == goal:
             return 0
 
-        return self.get_maximum_value(input)
+        return self.get_maximum_value(input, goal)
 
-    def get_maximum_value(self, input):
-        predicted_values = self.get_predicted_values_with_maximum(input)
+    def get_maximum_value(self, input, goal):
+        predicted_values = self.get_predicted_values_with_maximum(input, goal)
         return predicted_values[-1]
 
-    def get_predicted_values_with_maximum(self, input):
-        cdef list predicted_values = get_predicted_values_from_heuristics(input)
+    def get_predicted_values_with_maximum(self, input, goal):
+        cdef list predicted_values = get_predicted_values_from_heuristics(input, goal)
         cdef int maximum_value = predicted_values[-1]
 
         cdef int distance = int(self.model.predict(np.array([predicted_values])))
@@ -317,13 +316,13 @@ class MaximizingWithRF(AbstractHeuristic):
         return predicted_values
 
 
-def get_predicted_values_from_heuristics(input):
+def get_predicted_values_from_heuristics(input, goal):
     cdef list predicted_values = []
     cdef int maximum_value = 0
     cdef int index, predicted_value
 
     for index in range(1, 7):
-        predicted_value = get_heuristic_by_name(Name(index)).compute(input)
+        predicted_value = get_heuristic_by_name(Name(index)).compute(input, goal)
         predicted_values.append(predicted_value)
 
         if predicted_value > maximum_value:

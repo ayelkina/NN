@@ -5,12 +5,16 @@ pyximport.install()
 from package.Model.Heuristic import MaximizingWithNN, NeuralNetwork
 
 from package.Utils import TrainingData
-from package.Utils.Parameters import BATCH_SIZE, EPOCHS, NN_MODEL_NAME, INPUT_DIM
+from package.Utils.Parameters import BATCH_SIZE, EPOCHS, INPUT_DIM
 
 
 class NeuralNetworkModel:
-    def learn_heuristic(self, training_set, maximizing_heuristic):
-        input_list, output_list = TrainingData.get_training_data(training_set, maximizing_heuristic)
+    model_name = ''
+    def __init__(self, name):
+        self.model_name = name
+
+    def learn_heuristic(self, training_set, maximizing_heuristic, goal):
+        input_list, output_list = TrainingData.get_training_data(training_set, maximizing_heuristic, goal)
         # input_list, output_list = training_set[0], training_set[1]
         input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 
@@ -28,7 +32,7 @@ class NeuralNetworkModel:
         val_loss, val_acc = model.evaluate(input_train, output_train, batch_size=BATCH_SIZE)
         self.evaluate(model, input_test, output_test)
         print("Loss", val_loss, "ACC", val_acc)
-        model.save(NN_MODEL_NAME)
+        model.save(self.model_name)
 
     def evaluate(self, model, input_test, output_test):
         if len(input_test) == 0:
@@ -46,10 +50,8 @@ class NeuralNetworkModel:
 
         print("Error:", diff, "Mean:", diff / num_predictions)
 
-    @staticmethod
-    def get_maximizing_heuristic():
-        return MaximizingWithNN()
+    def get_maximizing_heuristic(self):
+        return MaximizingWithNN(self.model_name)
 
-    @staticmethod
-    def get_base_heuristic():
-        return NeuralNetwork()
+    def get_base_heuristic(self):
+        return NeuralNetwork(self.model_name)

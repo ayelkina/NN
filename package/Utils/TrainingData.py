@@ -7,7 +7,7 @@ from package.Model import Heuristic
 # from Model.Heuristic import get_heuristic_by_name, Name
 from package.Model.Heuristic import get_predicted_values_from_heuristics
 from package.Utils import Tiles
-from package.Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, GOAL, TIMEOUT, TRAIN_SIZE_FACTOR
+from package.Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, TIMEOUT, TRAIN_SIZE_FACTOR
 
 
 class TrainingData:
@@ -23,12 +23,12 @@ class TrainingData:
         self.solution_length = len(self.solution_path)
 
 
-def generate_training_data_to_file(self, n):
+def generate_training_data_to_file(self, n, goal):
     file_output = open(FILE_NAME, "w+")
     i = 0
     while i < n:
         distance_to_goal = random.randint(MIN_DISTANCE, MAX_DISTANCE)
-        input = Tiles.random_walk(GOAL, distance_to_goal)
+        input = Tiles.random_walk(goal, distance_to_goal)
         solution_list = self.get_solution_list(input)
 
         if len(solution_list) == 0:
@@ -103,12 +103,12 @@ def get_predicted_values_with_maximum(input, maximizing_heuristic):
     return predicted_values
 
 
-def get_training_data(training_set, maximizing_heuristic):
+def get_training_data(training_set, maximizing_heuristic, goal):
     input_list = []
     output_list = []
 
     for line in training_set:
-        input_data = maximizing_heuristic.get_predicted_values_with_maximum(line[0])
+        input_data = maximizing_heuristic.get_predicted_values_with_maximum(line[0], goal)
         input_list.append(input_data)
         output_list.append(line[1])
 

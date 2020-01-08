@@ -11,10 +11,10 @@ cdef int nodes_max = NODES_MAX * 8
 cdef int rw_ins = 500
 
 
-cpdef void run(learning_model):
+cpdef void run(learning_model, goal):
     cdef int nodes_limit = NODES_MAX
     cdef list training_set = []
-    cdef list not_solved_list = Helper.generate_input_list(rw_ins)
+    cdef list not_solved_list = Helper.generate_random_puzzle_list(rw_ins, goal)
     h_in = Heuristic.Maximizing()
     cdef int solved_number = 0
     cdef int count, solution_length, i
@@ -29,7 +29,7 @@ cpdef void run(learning_model):
             count += 1
             print("Solved number", solved_number, "/", count)
             algorithm = Astar(h_in)
-            algorithm.solve(instance, nodes_limit)
+            algorithm.solve(instance, nodes_limit, goal)
             if not algorithm.terminated:
                 solved_number += 1
                 solution_length = len(algorithm.solution.path) - 1
@@ -45,7 +45,7 @@ cpdef void run(learning_model):
             print("Solved number:", solved_number)
             solved_number = 0
             not_solved_number = len(not_solved_list)
-            learning_model.learn_heuristic(training_set, h_in)
+            learning_model.learn_heuristic(training_set, h_in, goal)
             h_in = learning_model.get_maximizing_heuristic()
             training_set = []
         else:
