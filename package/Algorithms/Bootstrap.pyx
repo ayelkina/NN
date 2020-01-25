@@ -1,14 +1,18 @@
 import pyximport
+
+from package.Model.NeuralNetwork import NeuralNetworkModel
+from package.Model.RandomForest import RandomForestModel
+
 pyximport.install()
 
 from package.Algorithms.Astar import Astar
 from package.Model import Heuristic
 from package.Utils import Helper
 
-cdef int ins_min = 75
-cdef int NODES_MAX = 4000
-cdef int nodes_max = NODES_MAX * 8
-cdef int rw_ins = 500
+cdef int ins_min = 1
+cdef int NODES_MAX = 2000
+cdef int nodes_max = NODES_MAX * 64
+cdef int rw_ins = 5
 
 
 cpdef void run(learning_model, goal):
@@ -32,7 +36,7 @@ cpdef void run(learning_model, goal):
             algorithm.solve(instance, nodes_limit, goal)
             if not algorithm.terminated:
                 solved_number += 1
-                solution_length = len(algorithm.solution.path) - 1
+                solution_length = len(algorithm.solution.path)
                 solution_path = algorithm.solution.path[:-1]
                 i = 1
                 for solution in solution_path:
@@ -45,9 +49,11 @@ cpdef void run(learning_model, goal):
             print("Solved number:", solved_number)
             solved_number = 0
             not_solved_number = len(not_solved_list)
-            learning_model.learn_heuristic(training_set, h_in, goal)
-            h_in = learning_model.get_maximizing_heuristic()
+            model_name = learning_model.learn_heuristic(training_set, h_in, goal)
+            new_model = NeuralNetworkModel(model_name)
+            h_in = new_model.get_maximizing_heuristic()
             training_set = []
+            nodes_limit *= 2
         else:
             print("not solved")
             nodes_limit *= 2

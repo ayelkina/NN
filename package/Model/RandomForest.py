@@ -16,7 +16,7 @@ class RandomForestModel:
         input_list, output_list = TrainingData.get_training_data(training_set, maximizing_heuristic, goal)
         input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 
-        model = RandomForestClassifier(n_estimators=150)
+        model = RandomForestClassifier(n_estimators=200)
         model.fit(input_train, output_train)
         model.score(input_train, output_train)
 
@@ -25,7 +25,8 @@ class RandomForestModel:
 
         return model
 
-    def evaluate(self, model, input_test, output_test):
+    @staticmethod
+    def evaluate(model, input_test, output_test):
         if len(input_test) == 0:
             return
 
@@ -35,10 +36,9 @@ class RandomForestModel:
         for i in range(num_predictions):
             val = predictions[i]
             absolute_diff = abs(val - output_test[i])
-            print('Predicted:', val, ' Actual:', output_test[i], 'Difference:', absolute_diff)
-            diff += absolute_diff
+            diff += absolute_diff * absolute_diff
 
-        print("Error:", diff, "Mean:", diff / num_predictions)
+        print("Mean:", diff / num_predictions)
 
     def get_maximizing_heuristic(self):
         return MaximizingWithRF(self.model_name)

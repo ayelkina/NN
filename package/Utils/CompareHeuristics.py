@@ -55,18 +55,20 @@ def compare(input_size, learning_models, goal):
 
 def compare_with_subopt(input_size, learning_models, goal):
     output = []
+    number = 0
     input_list = generate_input_list(input_size, goal)
     heuristics = [Heuristic.Maximizing()]
+    output.append(Result("NeuralNetwork"))
     for learning_model in learning_models:
         heuristics.append(learning_model.get_base_heuristic())
-        heuristics.append(learning_model.get_maximizing_heuristic())
-
-    for name in heuristics:
-        output.append(Result(name.__class__.__name__))
+        output.append(Result(learning_model.model_name))
 
     for input in input_list:
+        print(number)
+        number += 1
         for index in range(len(heuristics)):
             print(heuristics[index].__class__.__name__)
+
             algorithm = Astar(heuristics[index])
             start_time = time.time()
             algorithm.solve(input, TIMEOUT, goal)

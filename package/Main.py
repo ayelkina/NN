@@ -1,48 +1,48 @@
 import datetime
 import getopt
 import sys
-import matplotlib.pyplot as plt
-import numpy as np
-import pyximport
 
+import pyximport
 from prettytable import PrettyTable
+
 from package.Model.NeuralNetwork import NeuralNetworkModel
 from package.Model.RandomForest import RandomForestModel
+from package.Utils.Helper import generate_goal
 
 pyximport.install()
 from package.Utils import CompareHeuristics
 from package.Algorithms import Bootstrap
-from package.Utils.Parameters import goal_15, goal_24
 
 
 def main(argv):
-    goal, mode, rf_name, nn_name = '', '', '', ''
+    goal, mode = '', ''
+    nn_name, rf_name = [], []
     number = 10
 
     try:
         opts, args = getopt.getopt(argv, "s:r:n:m:e:",
                                    ["size=", "randomforest=", "neuralnetwork=", "mode=", "elements="])
     except getopt.GetoptError:
-        print('Error. Command line structure: Main.py -s <size> -rn <random forest model> -nn <neural network model>'
+        print('Error. Command line structure: Main.py -s <size> -r <random forest model> -n <neural network model>'
               '-m <[Learn, Compare]>, -e <number of elements to compare>]')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt in ('-s', '-size'):
-            if arg == '24':
-                goal = goal_24
-            else:
-                goal = goal_15
+            goal = generate_goal(int(arg))
         elif opt == '-r':
-            rf_name = arg
+            rf_name = arg.split(',')
         elif opt == '-n':
-            nn_name = arg
+            nn_name = arg.split(',')
         elif opt in ('-m', '--mode'):
             mode = arg.lower()
         elif opt in ('-e', '-elements'):
             number = int(arg)
 
-    if rf_name == '' and nn_name == '':
+    if goal == '':
+        goal = generate_goal(4)
+
+    if not rf_name and not nn_name:
         print("Error. Please give the name for random forest model (rf <name>) or neural network model (nn <name>)")
         sys.exit(0)
 
@@ -55,26 +55,12 @@ def main(argv):
         sys.exit(0)
 
 
-def draw_bar_spot(x, y, goal):
-    x_pos = np.arange(len(x))
-    plt.barh(x_pos, y, align='center', alpha=1)
-    plt.yticks(x_pos, x)
-    plt.xlabel('Expanded nodes')
-    size = len(goal[0])
-    puzzle_type = str(size * size - 1)
-    title = puzzle_type + '-puzzle'
-    plt.title(title)
-
-    plt.savefig(puzzle_type + '.png')
-    plt.show()
-
-
-def compare(number, nn_name, rf_name, goal):
+def compare(number, nn_name: list, rf_name: list, goal):
     learning_models = []
-    if nn_name != '':
-        learning_models.append(NeuralNetworkModel(nn_name))
-    if rf_name != '':
-        learning_models.append(RandomForestModel(rf_name))
+    for name in nn_name:
+        learning_models.append(NeuralNetworkModel(name))
+    for name in rf_name:
+        learning_models.append(RandomForestModel(name))
 
     output = CompareHeuristics.compare_with_subopt(number, learning_models, goal)
     table = PrettyTable()
@@ -83,16 +69,17 @@ def compare(number, nn_name, rf_name, goal):
         table.add_row([result.heuristic, result.expanded_nodes, result.subopt, result.duration])
 
     print(table)
+    print(datetime.datetime.now())
 
 
 def learn(nn_name, rf_name, goal):
     learning_model = ''
 
-    if nn_name != '':
+    if nn_name:
         print("Learn neural network")
-        learning_model = NeuralNetworkModel(nn_name)
-    elif rf_name != '':
-        learning_model = RandomForestModel(rf_name)
+        learning_model = NeuralNetworkModel(nn_name[0])
+    elif rf_name:
+        learning_model = RandomForestModel(rf_name[0])
         print("Learn random forest")
 
     print(datetime.datetime.now())
