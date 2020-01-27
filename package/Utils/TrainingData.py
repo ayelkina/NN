@@ -4,23 +4,9 @@ pyximport.install()
 
 from package.Algorithms.Astar import Astar
 from package.Model import Heuristic
-# from Model.Heuristic import get_heuristic_by_name, Name
 from package.Model.Heuristic import get_predicted_values_from_heuristics
 from package.Utils import Tiles
 from package.Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, TIMEOUT, TRAIN_SIZE_FACTOR
-
-
-class TrainingData:
-    input = []
-    heuristic = ''
-    solution_path = []
-    solution_length = ''
-
-    def __init__(self, Astar):
-        self.input = Astar.input
-        self.heuristic = Astar.heuristic
-        self.solution_path = Astar.solution[1:]
-        self.solution_length = len(self.solution_path)
 
 
 def generate_training_data_to_file(self, n, goal):

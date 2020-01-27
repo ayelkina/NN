@@ -3,5 +3,5 @@ from distutils.core import setup
 from Cython.Build import cythonize
 
 setup(
-    ext_modules=cythonize("package/*.pyx"), requires=['tensorflow']
+    ext_modules=cythonize("package/*.pyx"), requires=['tensorflow', 'matplotlib', 'numpy']
 )

@@ -19,41 +19,6 @@ class Result:
 
 
 def compare(input_size, learning_models, goal):
-    x = []
-    y = []
-    input_list = generate_input_list(input_size, goal)
-    heuristics = [Heuristic.Maximizing()]
-    for learning_model in learning_models:
-        heuristics.append(learning_model.get_base_heuristic())
-        heuristics.append(learning_model.get_maximizing_heuristic())
-
-    for name in heuristics:
-        average_expanded_nodes = 0
-        average_length = 0
-        terminated = 0
-        algorithm = Astar(name)
-
-        for input in input_list:
-            algorithm.solve(input, TIMEOUT, goal)
-            average_expanded_nodes += algorithm.expanded_nodes
-            if algorithm.terminated:
-                terminated += 1
-            else:
-                average_length += len(algorithm.solution.path) - 1
-
-        print("Heuristic:", algorithm.heuristic.__class__.__name__)
-        print("Terminated:", terminated)
-        if terminated < input_size:
-            print("Average solution length:", average_length / (input_size - terminated))
-
-        print("Average expanded nodes:", average_expanded_nodes / input_size)
-        x.append(algorithm.heuristic.__class__.__name__)
-        y.append(average_expanded_nodes / input_size)
-        print()
-    return x, y
-
-
-def compare_with_subopt(input_size, learning_models, goal):
     output = []
     number = 0
     input_list = generate_input_list(input_size, goal)

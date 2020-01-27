@@ -1,8 +1,11 @@
-from datetime import time, datetime
+from datetime import datetime
 
 import tensorflow as tf
+import numpy as np
 
 import pyximport
+
+from package.MachineLearning.AbstractMachineLearning import AbstractMachineLearning
 
 pyximport.install()
 from package.Model.Heuristic import MaximizingWithNN, NeuralNetwork
@@ -11,7 +14,7 @@ from package.Utils import TrainingData
 from package.Utils.Parameters import BATCH_SIZE, EPOCHS, INPUT_DIM
 
 
-class NeuralNetworkModel:
+class NeuralNetworkModel(AbstractMachineLearning):
     model_name = ''
 
     def __init__(self, name):
@@ -30,16 +33,15 @@ class NeuralNetworkModel:
                       optimizer='adam',
                       metrics=['accuracy'])
 
-        model.fit(input_train, output_train, epochs=EPOCHS, batch_size=BATCH_SIZE)
+        model.fit(np.array(input_train), output_train, epochs=EPOCHS, batch_size=BATCH_SIZE)
 
         self.evaluate(model, input_test, output_test)
-        current_time = datetime.now()
-        model_name = "nn_test_" + str(current_time.day) + str(current_time.hour) + str(current_time.minute) + ".model"
-        model.save(model_name)
-        return model_name
+        # current_time = datetime.now()
+        # model_name = "nn_test_" + str(current_time.day) + str(current_time.hour) + str(current_time.minute) + ".model"
+        model.save(self.model_name)
+        return self.model_name
 
-    @staticmethod
-    def evaluate(model, input_test, output_test):
+    def evaluate(self, model, input_test, output_test):
         if len(input_test) == 0:
             return
 

@@ -301,6 +301,7 @@ class MaximizingWithRF(AbstractHeuristic):
 
         return self.get_maximum_value(input, goal)
 
+
     def get_maximum_value(self, input, goal):
         predicted_values = self.get_predicted_values_with_maximum(input, goal)
         return predicted_values[-1]

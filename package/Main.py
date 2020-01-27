@@ -5,13 +5,13 @@ import sys
 import pyximport
 from prettytable import PrettyTable
 
-from package.Model.NeuralNetwork import NeuralNetworkModel
-from package.Model.RandomForest import RandomForestModel
+from package.MachineLearning.NeuralNetwork import NeuralNetworkModel
+from package.MachineLearning.RandomForest import RandomForestModel
 from package.Utils.Helper import generate_goal
 
 pyximport.install()
-from package.Utils import CompareHeuristics
-from package.Algorithms import Bootstrap
+from package.Utils import Compare
+from package.Algorithms.BLHF import BLHF
 
 
 def main(argv):
@@ -62,7 +62,7 @@ def compare(number, nn_name: list, rf_name: list, goal):
     for name in rf_name:
         learning_models.append(RandomForestModel(name))
 
-    output = CompareHeuristics.compare_with_subopt(number, learning_models, goal)
+    output = Compare.compare(number, learning_models, goal)
     table = PrettyTable()
     table.field_names = ["Heuristics", "Expanded nodes", "Suboptimality", "Time"]
     for result in output:
@@ -83,7 +83,8 @@ def learn(nn_name, rf_name, goal):
         print("Learn random forest")
 
     print(datetime.datetime.now())
-    Bootstrap.run(learning_model, goal)
+    algorithm = BLHF(learning_model, goal)
+    algorithm.execute()
     print(datetime.datetime.now())
 
 

@@ -2,11 +2,12 @@ import pickle
 
 from sklearn.ensemble import RandomForestClassifier
 
+from package.MachineLearning.AbstractMachineLearning import AbstractMachineLearning
 from package.Model.Heuristic import MaximizingWithRF, RandomForest
 from package.Utils import TrainingData
 
 
-class RandomForestModel:
+class RandomForestModel(AbstractMachineLearning):
     model_name = ''
 
     def __init__(self, name):
@@ -25,8 +26,7 @@ class RandomForestModel:
 
         return model
 
-    @staticmethod
-    def evaluate(model, input_test, output_test):
+    def evaluate(self, model, input_test, output_test):
         if len(input_test) == 0:
             return
 

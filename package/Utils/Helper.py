@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import pyximport
+
 pyximport.install()
 
 from package.Utils import Tiles
@@ -20,6 +21,7 @@ def generate_random_puzzle_list(number, goal):
 
     return input_list
 
+
 def draw_bar_spot(x, y, goal):
     x_pos = np.arange(len(x))
     plt.barh(x_pos, y, align='center', alpha=1)
@@ -32,6 +34,7 @@ def draw_bar_spot(x, y, goal):
 
     plt.savefig(puzzle_type + '.png')
     plt.show()
+
 
 def generate_goal(size):
     goal = []
