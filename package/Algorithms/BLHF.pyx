@@ -1,4 +1,5 @@
 import pyximport
+from libc.stdio cimport printf
 
 pyximport.install()
 
@@ -6,23 +7,22 @@ from package.Algorithms.Astar import Astar
 from package.Model import Heuristic
 from package.Utils import Helper
 
-cdef int ins_min = 75
+cdef int ins_min = 1
 cdef int NODES_MAX = 2000
 cdef int nodes_max = NODES_MAX * 64
-cdef int rw_ins = 500
+cdef int rw_ins = 5
 
 cdef class BLHF:
-
-    learning_model = ''
+    cdef object learning_model
     cdef list goal
     cdef int nodes_limit
 
     def __init__(self, learning_model, goal):
         self.learning_model = learning_model
         self.goal = goal
+        self.nodes_limit = NODES_MAX
 
     cpdef void execute(self):
-        cdef int nodes_limit = NODES_MAX
         cdef list not_solved_list = Helper.generate_random_puzzle_list(rw_ins, self.goal)
         h_in = Heuristic.Maximizing()
         self.__bootstrap(not_solved_list, h_in)
@@ -36,11 +36,11 @@ cdef class BLHF:
 
         while not_solved_number >= ins_min and self.nodes_limit <= nodes_max:
             count = -1
-            input_list = not_solved_list
-            not_solved_list = []
+            input_list = ins
+            ins = []
             for instance in input_list:
                 count += 1
-                print("Solved number", solved_number, "/", count)
+                printf("Solved number %d / %d\n", solved_number, count)
                 algorithm = Astar(h_in)
                 algorithm.solve(instance, self.nodes_limit, self.goal)
                 if not algorithm.terminated:
@@ -52,16 +52,14 @@ cdef class BLHF:
                         training_set.append([solution, solution_length - i])
                         i += 1
                 else:
-                    not_solved_list.append(instance)
+                    ins.append(instance)
 
             if solved_number >= ins_min:
-                print("Solved number:", solved_number)
+                printf("Solved number: %d\n", solved_number)
                 solved_number = 0
-                not_solved_number = len(not_solved_list)
+                not_solved_number = len(ins)
                 self.learning_model.learn_heuristic(training_set, h_in, self.goal)
                 h_in = self.learning_model.get_maximizing_heuristic()
                 training_set = []
-                self.nodes_limit *= 2
             else:
-                print("not solved")
                 self.nodes_limit *= 2

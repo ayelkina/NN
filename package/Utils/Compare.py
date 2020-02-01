@@ -23,7 +23,7 @@ def compare(input_size, learning_models, goal):
     number = 0
     input_list = generate_input_list(input_size, goal)
     heuristics = [Heuristic.Maximizing()]
-    output.append(Result("NeuralNetwork"))
+    output.append(Result("Maximizing"))
     for learning_model in learning_models:
         heuristics.append(learning_model.get_base_heuristic())
         output.append(Result(learning_model.model_name))
@@ -69,9 +69,7 @@ def generate_input_list(number, goal):
     i = 0
     while i < number:
         distance_to_goal = random.randint(MIN_DISTANCE, MAX_DISTANCE)
-        print("Distance to goal", distance_to_goal)
         input = Tiles.random_walk(goal, distance_to_goal)
-        print("input", input)
 
         input_list.append(input)
         i += 1

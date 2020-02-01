@@ -13,14 +13,10 @@ from package.Utils import Tiles
 class Name(Enum):
     LinearConflict = 1
     Manhattan = 2
-    NeuralNetwork = 7
-    Maximizing = 8
-    MaximizingWithNN = 9
     Gasching = 6
     Misplaced = 3
     ColumnsMisplaced = 4
     RowsMisplaced = 5
-    # RandomForest = 10
 
 
 def get_heuristic_by_name(name):
@@ -36,14 +32,6 @@ def get_heuristic_by_name(name):
         return RowsMisplaced()
     elif name == Name.Gasching:
         return Gasching()
-    if name == Name.NeuralNetwork:
-        return NeuralNetwork()
-    elif name == Name.Maximizing:
-        return Maximizing()
-    elif name == Name.MaximizingWithNN:
-        return MaximizingWithNN()
-    elif name == Name.RandomForest:
-        return RandomForest()
 
 
 class AbstractHeuristic:
@@ -300,7 +288,6 @@ class MaximizingWithRF(AbstractHeuristic):
             return 0
 
         return self.get_maximum_value(input, goal)
-
 
     def get_maximum_value(self, input, goal):
         predicted_values = self.get_predicted_values_with_maximum(input, goal)

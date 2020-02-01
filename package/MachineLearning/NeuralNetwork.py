@@ -1,9 +1,6 @@
-from datetime import datetime
-
-import tensorflow as tf
 import numpy as np
-
 import pyximport
+import tensorflow as tf
 
 from package.MachineLearning.AbstractMachineLearning import AbstractMachineLearning
 
@@ -34,10 +31,7 @@ class NeuralNetworkModel(AbstractMachineLearning):
                       metrics=['accuracy'])
 
         model.fit(np.array(input_train), output_train, epochs=EPOCHS, batch_size=BATCH_SIZE)
-
         self.evaluate(model, input_test, output_test)
-        # current_time = datetime.now()
-        # model_name = "nn_test_" + str(current_time.day) + str(current_time.hour) + str(current_time.minute) + ".model"
         model.save(self.model_name)
         return self.model_name
 
@@ -52,7 +46,7 @@ class NeuralNetworkModel(AbstractMachineLearning):
             val = predictions[i]
             result = int(round(val[0]))
             absolute_diff = abs(result - output_test[i])
-            diff += absolute_diff*absolute_diff
+            diff += absolute_diff * absolute_diff
 
         print("Mean:", diff / num_predictions)
 

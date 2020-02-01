@@ -1,36 +1,10 @@
-import random
 import pyximport
 pyximport.install()
 
 from package.Algorithms.Astar import Astar
 from package.Model import Heuristic
 from package.Model.Heuristic import get_predicted_values_from_heuristics
-from package.Utils import Tiles
-from package.Utils.Parameters import FILE_NAME, MIN_DISTANCE, MAX_DISTANCE, TIMEOUT, TRAIN_SIZE_FACTOR
-
-
-def generate_training_data_to_file(self, n, goal):
-    file_output = open(FILE_NAME, "w+")
-    i = 0
-    while i < n:
-        distance_to_goal = random.randint(MIN_DISTANCE, MAX_DISTANCE)
-        input = Tiles.random_walk(goal, distance_to_goal)
-        solution_list = self.get_solution_list(input)
-
-        if len(solution_list) == 0:
-            print("No solution. Distance:", distance_to_goal)
-            continue
-
-        best_heur = self.heuristic_with_shortest_solution(solution_list)
-        print("Step", i, "Distance:", distance_to_goal)
-        file_output.write(str(input))
-        file_output.write("\n")
-        file_output.write(str(best_heur.solution_length))
-        file_output.write("\n")
-        file_output.write(str(best_heur.solution_path))
-        file_output.write("\n")
-        i += 1
-    file_output.close()
+from package.Utils.Parameters import TIMEOUT, TRAIN_SIZE_FACTOR
 
 
 def get_input_list_from_file(file_name):

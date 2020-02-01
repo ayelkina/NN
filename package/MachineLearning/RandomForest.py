@@ -1,5 +1,6 @@
 import pickle
 
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from package.MachineLearning.AbstractMachineLearning import AbstractMachineLearning
@@ -18,7 +19,7 @@ class RandomForestModel(AbstractMachineLearning):
         input_train, output_train, input_test, output_test = TrainingData.split_data(input_list, output_list)
 
         model = RandomForestClassifier(n_estimators=200)
-        model.fit(input_train, output_train)
+        model.fit(np.array(input_train), output_train)
         model.score(input_train, output_train)
 
         self.evaluate(model, input_test, output_test)
